@@ -76,33 +76,35 @@
 
     <section>
         <h2>Contacto</h2>
-        <form class="formulario">
+        <form class="formulario" id="formulario-contacto">
             <fieldset>
                 <legend>Contactanos llenando todos los campos</legend>
                 <div class="contenedor-campos">
                     <div class="campo">
-                        <label for="">Nombre</label>
-                        <input class="input-text" type="text" placeholder="Tu nombre">
+                        <label for="nombre">Nombre</label>
+                        <input class="input-text" type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
                     </div>
 
                     <div class="campo">
-                        <label for="">Numero de telefono</label>
-                        <input class="input-text" type="number" placeholder="Celular">
+                        <label for="telefono">Numero de telefono</label>
+                        <input class="input-text" type="tel" id="telefono" name="telefono" placeholder="Celular" required>
                     </div>
 
                     <div class="campo">
-                        <label for="">E-mail</label>
-                        <input class="input-text" type="email" placeholder="example@gmail.com">
+                        <label for="email">E-mail</label>
+                        <input class="input-text" type="email" id="email" name="email" placeholder="example@gmail.com" required>
                     </div>
 
                     <div class="campo">
-                        <label for="">Mensaje</label>
-                        <textarea class="input-text"></textarea>
+                        <label for="mensaje">Mensaje</label>
+                        <textarea class="input-text" id="mensaje" name="mensaje" required></textarea>
                     </div>
                 </div>
 
+                <p id="mensaje-estado" class="mensaje-estado" aria-live="polite"></p>
+
                 <div class="alinear-derecha">
-                    <input class="boton" type="submit" value="Enviar">
+                    <input class="boton" type="submit" id="btn-enviar" value="Enviar">
                 </div>
                 
                 
@@ -113,5 +115,56 @@
     <footer>
         <p>Todos los derechos reservados Enrique Santacruz Freelancer</p>
     </footer>
+
+    <script>
+        // ⚠️ Reemplazá esta URL por la que te da Google Apps Script al desplegar
+        // (ver instrucciones / archivo Codigo.gs)
+        const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycbytKGa8SjFfjhW1HgmWiMCRXMestdU7ajEU18V96Jum3KwSRT1AEANJgwbZ1Ym3j2HL/exec";
+
+        const formulario = document.getElementById('formulario-contacto');
+        const mensajeEstado = document.getElementById('mensaje-estado');
+        const botonEnviar = document.getElementById('btn-enviar');
+
+        formulario.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const datos = new URLSearchParams();
+            datos.append('nombre', document.getElementById('nombre').value.trim());
+            datos.append('telefono', document.getElementById('telefono').value.trim());
+            datos.append('email', document.getElementById('email').value.trim());
+            datos.append('mensaje', document.getElementById('mensaje').value.trim());
+
+            botonEnviar.value = "Enviando...";
+            botonEnviar.disabled = true;
+            mensajeEstado.textContent = "";
+            mensajeEstado.className = "mensaje-estado";
+
+            fetch(URL_GOOGLE_SHEETS, {
+                method: 'POST',
+                body: datos
+            })
+            .then(function (respuesta) {
+                return respuesta.json();
+            })
+            .then(function (data) {
+                if (data.result === 'success') {
+                    mensajeEstado.textContent = "¡Gracias! Tu mensaje fue enviado correctamente.";
+                    mensajeEstado.classList.add('exito');
+                    formulario.reset();
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+            })
+            .catch(function (error) {
+                console.error('Error al enviar el formulario:', error);
+                mensajeEstado.textContent = "Hubo un problema al enviar tu mensaje. Intentá de nuevo.";
+                mensajeEstado.classList.add('error');
+            })
+            .finally(function () {
+                botonEnviar.value = "Enviar";
+                botonEnviar.disabled = false;
+            });
+        });
+    </script>
 </body>
 </html>
